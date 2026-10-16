@@ -25,7 +25,7 @@
 ### 方式一：克隆仓库当工作区（推荐，ZCode 用户必选）
 
 ```bash
-git clone https://github.com/<你的用户名>/ai-short-drama.git
+git clone https://github.com/ceoifung/ai-short-drama.git
 cd ai-short-drama
 python .agents/skills/ai-short-drama/scripts/setup_env.py
 ```
@@ -35,7 +35,7 @@ python .agents/skills/ai-short-drama/scripts/setup_env.py
 ### 方式二：全局安装（在你任何项目里都能用）
 
 ```bash
-git clone https://github.com/<你的用户名>/ai-short-drama.git
+git clone https://github.com/ceoifung/ai-short-drama.git
 python ai-short-drama/.agents/skills/ai-short-drama/scripts/install.py
 ```
 
