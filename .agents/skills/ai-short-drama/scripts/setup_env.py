@@ -18,6 +18,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+HERE = os.path.dirname(os.path.abspath(__file__))
 from wsroot import ws_root
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -81,12 +82,18 @@ def main():
         n = (cuda.stdout or "").strip()
         report["cuda_devices"] = int(n) if n.isdigit() else 0
 
-    # 3. ffmpeg
+    # 3. ffmpeg: 检测不到则自动下载静态版到 <数据根>/tools/ffmpeg/
     for tool in ("ffmpeg", "ffprobe"):
         if shutil.which(tool):
-            report["steps"].append(tool + " OK")
+            report["steps"].append(tool + " OK(PATH)")
+            break
+    else:
+        print("未检测到 ffmpeg, 开始自动下载静态版(约80-100MB)...")
+        r = subprocess.run([sys.executable, os.path.join(HERE, "ensure_ffmpeg.py")])
+        if r.returncode == 0:
+            report["steps"].append("ffmpeg 已自动下载到 " + os.path.join(WS, "tools", "ffmpeg"))
         else:
-            report["issues"].append(tool + " 不在 PATH (自动剪辑/媒体转写需要, 装好后重跑本脚本验证)")
+            report["issues"].append("ffmpeg 自动下载失败(重跑本脚本重试; 或手动安装到 PATH; 或在 config.json 配 ffmpeg_url/proxy 指向可达镜像)")
 
     # 4. config.json
     cfg_path = os.path.join(WS, "config.json")

@@ -1,6 +1,6 @@
 ---
 name: ai-short-drama
-description: AI短剧全自动制作工作流（对标改写打法）。用户说"做短剧 / AI短剧 / 短剧工作流 / 跑短剧流水线 / 质检剪辑第X集"时触发。流程：素材入库（视频whisper转写/小说/创意归一化）→ 编剧改写（提示词驱动）→ AI审核 → 角色/场景资产 → 参考图生成（图片API+视觉抽检）→ 分镜（机检门禁）→ updream 生产包 →（人工平台生成后）AI质检+ffmpeg自动剪辑。环境自包含：setup_env.py 自建 .venv（faster-whisper），需 PATH 里有 ffmpeg。
+description: AI短剧全自动制作工作流（对标改写打法）。用户说"做短剧 / AI短剧 / 短剧工作流 / 跑短剧流水线 / 质检剪辑第X集"时触发。流程：素材入库（视频whisper转写/小说/创意归一化）→ 编剧改写（提示词驱动）→ AI审核 → 角色/场景资产 → 参考图生成（图片API+视觉抽检）→ 分镜（机检门禁）→ updream 生产包 →（人工平台生成后）AI质检+ffmpeg自动剪辑。环境自包含：setup_env.py 自建 .venv（faster-whisper）并自动供给 ffmpeg（缺失时下载静态版到 tools/）。
 ---
 
 # AI 短剧工作流
@@ -82,11 +82,11 @@ CreateWorkflow: saved = { name: "ai-short-drama", args: { title, source, mode, .
 
 ## 新环境部署（发给新客户机器时）
 
-1. 整个 `E:\AI短剧` 目录（含 `.zcode/`）拷过去，装好 **ffmpeg**（加 PATH）和任意 **Python 3.9+**
+1. 整个 `E:\AI短剧` 目录（含 `.zcode/`）拷过去，装好任意 **Python 3.9+**（ffmpeg 缺失会自动下载）
 2. 在工作区根目录跑一次：`python .agents/skills/ai-short-drama/scripts/setup_env.py`
    - 自动创建工作区 `.venv` 并安装 faster-whisper/numpy（workflow 只认 `.venv/Scripts/python.exe`，不依赖任何机器上的绝对路径）
    - 自动定位 whisper 模型：config 指定 > 工作区 `models/whisper-turbo` > 本机 `E:\ai-subtitle` 老安装 > 留空则首次转写自动从 hf-mirror 下载（约1.6GB）
-   - 自检 ffmpeg/ffprobe、GPU 可用性，生成 `config.json`
+   - 自检 ffmpeg(缺失自动下载)/GPU 可用性，生成 `config.json`
 3. 首次对 AI 说"做短剧"时，会自动弹出服务商选择和 key 输入引导（见下方"首次使用协议"），用户不用手动碰任何配置文件
 
 ## 图片 API 接入（无人值守出参考图）
@@ -97,11 +97,12 @@ CreateWorkflow: saved = { name: "ai-short-drama", args: { title, source, mode, .
 
 ## 脚本（确定性部分）
 
-- `scripts/setup_env.py` — 一键装配（venv/依赖/ffmpeg/模型定位/config）
+- `scripts/setup_env.py` — 一键装配（venv/依赖/ffmpeg自动下载/模型定位/config）
+- `scripts/ensure_ffmpeg.py` — ffmpeg 自动供给（检测→下载静态版→抽取→验证, --check/--force）
 - `scripts/configure.py` — 配置向导（--check 查状态 / --provider --key 代填+验证 / 无参交互式）
 - `scripts/ingest.py` — Stage 0 归一化；媒体走 faster-whisper（GPU 优先 CPU 兜底；模型路径四级解析；传 numpy 绕过旧 PyAV 兼容问题）
 - `scripts/render_pack.py` — Stage 4 机检 + 生产包渲染（退出码=门禁）；自动感知已生成参考图切换人工/API通道
 - `scripts/gen_assets.py` — Stage 4.5 参考图生成（图片API通道，断点续跑，退出码 3=未配key自动降级）
 - `scripts/auto_edit.py` — Stage 6 静音裁剪 + 拼接 + 1080x1920/30fps 导出
 
-运行环境：工作区 `.venv`（setup_env.py 创建），ffmpeg 在 PATH。
+运行环境：工作区 `.venv`（setup_env.py 创建）；ffmpeg PATH 优先、tools/ 本地兜底（ensure_ffmpeg.py 自动下载）。

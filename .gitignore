@@ -6,6 +6,7 @@ _private/
 config.json
 projects/
 models/
+tools/
 __pycache__/
 *.pyc
 

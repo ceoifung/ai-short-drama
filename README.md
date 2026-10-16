@@ -20,7 +20,7 @@
 
 ## 安装
 
-前置：任意 Python 3.9+，ffmpeg 已加入 PATH。
+前置：任意 Python 3.9+（ffmpeg 缺失时 setup_env 会自动下载静态版，也可手动装到 PATH）。
 
 ### 方式一：克隆仓库当工作区（推荐，ZCode 用户必选）
 

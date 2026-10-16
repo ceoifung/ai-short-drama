@@ -2,7 +2,7 @@
 
 > 本手册是流水线的唯一权威流程。任何 agent（Codex / Claude Code / Gemini CLI / 无编排引擎的 ZCode 会话）按此执行。
 > 有并行子代理能力的工具（Claude Code subagents 等）可以把"角色"映射为子代理；没有的就由主对话依次扮演，但**角色间必须互不迁就：审核就是挑刺，过就是过，不过就是不过**。
-> Python 一律用流水线自带的 venv——先跑 `configure.py --check`，用输出里的 `venv_python` 路径执行后续命令（克隆仓库=仓库内 `.venv`；全局安装=`~/.ai-short-drama/.venv`）。ffmpeg 需在 PATH。
+> Python 一律用流水线自带的 venv——先跑 `configure.py --check`，用输出里的 `venv_python` 路径执行后续命令（克隆仓库=仓库内 `.venv`；全局安装=`~/.ai-short-drama/.venv`）。ffmpeg 用 PATH 里的, 没有则跑 setup_env/ensure_ffmpeg 自动下载到 tools/。
 
 ## 产物目录约定（projects/<剧名>/）
 

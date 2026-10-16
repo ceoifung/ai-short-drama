@@ -17,6 +17,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wsroot import ws_root, is_global_install
+from fftools import available as ffmpeg_available
 
 sys.stdout.reconfigure(encoding="utf-8")
 WS = ws_root()
@@ -95,6 +96,7 @@ def current_status():
         "whisper_model": cfg.get("whisper_model", "(自动解析)"),
         "venv_python": venv_py,
         "venv_ok": os.path.exists(venv_py),
+        "ffmpeg_ok": ffmpeg_available(),
         "projects_dir": os.path.join(WS, "projects"),
         "need_setup": not bool(key),
     }

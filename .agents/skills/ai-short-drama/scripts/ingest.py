@@ -13,6 +13,7 @@ import wave
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wsroot import ws_root
+from fftools import ffmpeg_bin
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -83,7 +84,7 @@ def ts(sec):
 def transcribe(media, outdir):
     wav = os.path.join(outdir, "_tmp_audio.wav")
     subprocess.run(
-        ["ffmpeg", "-y", "-v", "error", "-i", media, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav],
+        [ffmpeg_bin(), "-y", "-v", "error", "-i", media, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav],
         check=True,
     )
     import numpy as np

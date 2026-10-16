@@ -6,6 +6,8 @@
   "ark_key": "",
   "ark_model": "doubao-seedream-4-0-250828",
   "whisper_model": "",
+  "ffmpeg_url": "",
+  "proxy": "",
   "style": "真人现代短剧",
   "size_character": "1440x720",
   "size_scene": "1024x1024",

@@ -2,7 +2,7 @@
 """Stage 6 自动剪辑: 05_footage/ep<N>/*.mp4 → 检测长静音并裁剪 → 拼接 → 9:16 → 07_final
 用法: python auto_edit.py --project projects/<剧名> --episode 1
 输出: stdout 最后一行 JSON {ok, final, clips, trims:[...]} ; 无片段时退出码 1
-依赖: ffmpeg 在 PATH
+依赖: ffmpeg(PATH 优先, tools/ 兜底)
 """
 import argparse
 import json
@@ -10,6 +10,9 @@ import os
 import re
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fftools import ffmpeg_bin, ffprobe_bin
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -29,7 +32,7 @@ def run(cmd):
 
 
 def detect_silences(path):
-    r = run(["ffmpeg", "-i", path, "-af", "silencedetect=noise=%ddB:d=%.2f" % (SILENCE_DB, SILENCE_MIN_D), "-f", "null", "-"])
+    r = run([ffmpeg_bin(), "-i", path, "-af", "silencedetect=noise=%ddB:d=%.2f" % (SILENCE_DB, SILENCE_MIN_D), "-f", "null", "-"])
     starts = [float(m) for m in re.findall(r"silence_start:\s*([\d.]+)", r.stderr)]
     ends = [float(m) for m in re.findall(r"silence_end:\s*([\d.]+)", r.stderr)]
     out = []
@@ -41,7 +44,7 @@ def detect_silences(path):
 
 
 def probe_duration(path):
-    r = run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path])
+    r = run([ffprobe_bin(), "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path])
     try:
         return float(r.stdout.strip())
     except ValueError:
@@ -71,7 +74,7 @@ def trim_clip(src, dst, silences, dur):
     af.append("%sconcat=n=%d:v=0:a=1[a]" % ("".join("[a%d]" % i for i in range(n)), n))
     scale = "[s]scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,setsar=1,fps=%d[v]" % (W, H, W, H, FPS)
     filter_complex = ";".join(vf + af + [scale]) + ";[v]format=yuv420p[vout]"
-    cmd = ["ffmpeg", "-y", "-v", "error", "-i", src, "-filter_complex", filter_complex,
+    cmd = [ffmpeg_bin(), "-y", "-v", "error", "-i", src, "-filter_complex", filter_complex,
            "-map", "[vout]", "-map", "[a]", "-c:v", "libx264", "-crf", "23", "-preset", "veryfast",
            "-c:a", "aac", "-b:a", "128k", "-r", str(FPS), dst]
     r = run(cmd)
@@ -120,7 +123,7 @@ def main():
     with open(lst, "w", encoding="utf-8") as f:
         for k in kept:
             f.write("file '%s'\n" % os.path.abspath(k).replace("\\", "/").replace("'", "'\\''"))
-    r = run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", final])
+    r = run([ffmpeg_bin(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", final])
     if r.returncode != 0:
         fail(["拼接失败: %s" % (r.stderr[-500:])])
 
