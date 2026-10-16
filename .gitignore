@@ -1,0 +1,18 @@
+# ===== 本地私有(不发布) =====
+_private/
+
+# ===== 运行时生成(每台机器各自生成) =====
+.venv/
+config.json
+projects/
+models/
+__pycache__/
+*.pyc
+
+# ===== ZCode 会话临时物(workflow 正式定义在 .zcode/workflows/, 保留) =====
+.zcode/workflow-drafts/
+
+# ===== 系统杂项 =====
+Thumbs.db
+.DS_Store
+nul

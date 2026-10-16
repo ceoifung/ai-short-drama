@@ -1,0 +1,13 @@
+{
+  "_说明": "复制本文件为工作区根目录 config.json 并按需填写。新环境先跑: python .agents/skills/ai-short-drama/scripts/setup_env.py (会自动生成/补全本文件)。provider 二选一: zhipu(智谱CogView) / ark(火山Seedream)。",
+  "provider": "zhipu",
+  "zhipu_key": "",
+  "zhipu_model": "cogview-4",
+  "ark_key": "",
+  "ark_model": "doubao-seedream-4-0-250828",
+  "whisper_model": "",
+  "style": "真人现代短剧",
+  "size_character": "1440x720",
+  "size_scene": "1024x1024",
+  "size_prop": "1024x1024"
+}
