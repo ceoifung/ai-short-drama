@@ -20,14 +20,16 @@
 
 ## 安装
 
-前置：任意 Python 3.9+（ffmpeg 缺失时 setup_env 会自动下载静态版，也可手动装到 PATH）。
+前置：任意 Python 3.9+（已装就直接用，**不会重复安装**；ffmpeg 缺失会自动下载；没有 Python 会得到安装指引，脚本绝不替你装）。
 
 ### 方式一：克隆仓库当工作区（推荐，ZCode 用户必选）
 
 ```bash
 git clone https://github.com/ceoifung/ai-short-drama.git
 cd ai-short-drama
-python .agents/skills/ai-short-drama/scripts/setup_env.py
+# Windows:  powershell -ExecutionPolicy Bypass -File install.ps1
+# Linux/macOS: ./install.sh
+# 等价于: python .agents/skills/ai-short-drama/scripts/setup_env.py
 ```
 
 克隆下来的目录就是工作区：剧本、资产、生产包都会在 `projects/<剧名>/` 下。ZCode 用户还能直接运行保存的工作流 `ai-short-drama`（全自动编排）。
