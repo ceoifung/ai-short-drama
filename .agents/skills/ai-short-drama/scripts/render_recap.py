@@ -62,6 +62,8 @@ def ass_escape(text):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project", required=True)
+    ap.add_argument("--crop-bottom", type=float, default=0.13,
+                    help="裁掉原片底部比例(去原剧硬字幕), 0=不裁, 默认0.13")
     a = ap.parse_args()
     with open(os.path.join(a.project, "02_plan", "plan.json"), encoding="utf-8") as f:
         plan = json.load(f)
@@ -100,7 +102,9 @@ def main():
         tts_dur = float(s.get("tts_duration", 0))
         cut = os.path.abspath(os.path.join(cuts_dir, "cut_%02d.mp4" % sid))
         af = ["-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2"]
-        vf = "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,setsar=1,fps=%d" % (W, H, W, H, FPS)
+        # 先裁掉原片底部(去原剧硬字幕)再缩放到目标画幅
+        crop = "crop=iw:%d:0:0," % int(meta.get("height", H) * (1 - a.crop_bottom)) if a.crop_bottom > 0 else ""
+        vf = crop + "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,setsar=1,fps=%d" % (W, H, W, H, FPS)
 
         if s["audio_mode"] == "voiceover":
             est = float(s.get("est_seconds", 3))
