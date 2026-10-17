@@ -132,4 +132,4 @@
 4. 扮演"解说文案师"（读 `prompts/p5_recap_writer.txt`）→ 审核官过 rubric → ⏸用户定稿
 5. 扮演"素材规划师"：文案逐段 → `02_plan/plan.json`（ep/t_start/t_end/audio_mode/est_seconds，时间戳只取自 beat）
 6. 机检：`plan_check.py --project …`（退出码=门禁，不过修 plan 重跑）
-7. 渲染：`render_recap.py --project …` → `07_final/recap_v1.mp4`（MVP 保留原声+烧大字幕；TTS 版开发中）
+7. 渲染：`render_recap.py --project …` → `07_final/recap_v1.mp4`（TTS口播+原声压低+逐短语字幕；edge-tts 不可用自动降级纯字幕版）

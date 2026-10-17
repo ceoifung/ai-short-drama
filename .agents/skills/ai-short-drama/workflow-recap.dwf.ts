@@ -199,12 +199,27 @@ if (!planOk || planInfo === undefined) {
 }
 log("规划通过: " + planInfo.segments + " 段, 总时长 " + Math.round(planInfo.total_seconds) + " 秒");
 
-phase("渲染字幕版样片");
+phase("解说配音 TTS");
+const tts = await world.run(".venv/Scripts/python.exe", [SK + "/scripts/tts.py", "--project", PROJ], { timeoutMs: 1200000 });
+if (tts.exitCode === 3) {
+  log("edge-tts 不可用, 输出无声字幕版");
+} else if (tts.exitCode !== 0) {
+  return failRun("TTS 阶段失败", (tts.stdout + tts.stderr).slice(0, 500));
+} else {
+  const ttsInfo = lastJson(tts.stdout) as { voiced: number; failed?: number[]; voice: string } | undefined;
+  if (ttsInfo !== undefined && ttsInfo.voiced > 0) {
+    log("口播配音 " + ttsInfo.voiced + " 段 (" + ttsInfo.voice + ")" + ((ttsInfo.failed?.length ?? 0) > 0 ? ", 失败 " + ttsInfo.failed?.length + " 段回退字幕" : ""));
+  } else {
+    log("TTS 未产出任何音频, 输出无声字幕版");
+  }
+}
+
+phase("渲染成片");
 const render = await world.run(".venv/Scripts/python.exe", [SK + "/scripts/render_recap.py", "--project", PROJ], { timeoutMs: 1800000 });
 if (render.exitCode !== 0) {
   return failRun("渲染失败", (render.stdout + render.stderr).slice(0, 500));
 }
-const rendered = lastJson(render.stdout) as { final: string; segments: number; seconds: number; resolution: string } | undefined;
+const rendered = lastJson(render.stdout) as { final: string; segments: number; seconds: number; resolution: string; voiced_segments: number; mode: string } | undefined;
 if (rendered === undefined) {
   return failRun("渲染输出解析失败", render.stdout.slice(0, 400));
 }
@@ -212,13 +227,14 @@ log("样片完成: " + rendered.final + " (" + rendered.seconds + " 秒)");
 await artifact.file("script", PROJ + "/01_script/recap.md", { title: "《" + title + "》解说文案" });
 let publishedVideo = true;
 try {
-  await artifact.file("final", rendered.final, { title: "《" + title + "》解说样片(MVP无声版)" });
+  await artifact.file("final", rendered.final, { title: "《" + title + "》解说样片(" + rendered.mode + ")" });
 } catch {
   publishedVideo = false;
-  await artifact.markdown("final-note", "样片已生成: " + rendered.final + " (文件较大请在本地打开)", { title: "《" + title + "》解说样片(MVP无声版)" });
+  await artifact.markdown("final-note", "样片已生成: " + rendered.final + " (文件较大请在本地打开)", { title: "《" + title + "》解说样片(" + rendered.mode + ")" });
 }
+const voiced = (rendered.voiced_segments ?? 0) > 0;
 return {
-  conclusion: "《" + title + "》解说样片(MVP无声字幕版)已生成: " + rendered.final + ", " + rendered.segments + " 段 / " + rendered.seconds + " 秒 / " + rendered.resolution + "。文案审核 " + verdict.score + " 分, 素材规划过机检。样片保留原声、解说词为字幕; 确认画面匹配与节奏后, 下一步上 TTS 配音版。" + (publishedVideo ? "" : "(成片较大, 请在本地播放)"),
+  conclusion: "《" + title + "》解说样片已生成: " + rendered.final + ", " + rendered.segments + " 段 / " + rendered.seconds + " 秒 / " + rendered.resolution + "。文案审核 " + verdict.score + " 分, 素材规划过机检。" + (voiced ? "含 TTS 口播配音(原声自动压低), 解说字幕逐短语显示。" : "无声字幕版(edge-tts 不可用), 解说词为字幕。") + (publishedVideo ? "" : "(成片较大, 请在本地播放)"),
   findings: verdict.issues
     .filter((i) => i.severity !== "low")
     .map((i) => ({ where: i.where, what: i.problem + " → " + i.suggestion, evidence: "文案审核 " + PROJ + "/01_script/recap.review.md", status: "unconfirmed" as const, severity: i.severity })),
@@ -228,7 +244,7 @@ return {
     "渲染产物经 ffprobe 校验时长",
   ],
   notCovered: [
-    "MVP 为无声字幕版: 未含 TTS 配音/原声压低/BGM, 画面与解说对位靠字幕呈现",
+    voiced ? "BGM 未含(如需放入 02_plan/bgm.mp3 后续版本支持)" : "TTS 未产出(网络/依赖问题)",
     "画面情绪匹配精度为规划师基于 beat 判断, 未逐段视觉复核",
   ],
 };
