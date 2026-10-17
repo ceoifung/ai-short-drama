@@ -119,3 +119,17 @@
 
 `CreateWorkflow saved: { name: "ai-short-drama", args: {...} }`，参数：
 `title`(必填剧名) / `source`(必填素材) / `mode`(full|qa) / `episode`(默认1) / `shot_seconds`(15) / `shot_count`(0=自定) / `style`(真人现代短剧) / `source_type`(auto)
+
+---
+
+## 附：解说模式（recap，跨工具手动版）
+
+用户给一个剧集文件夹要做 5-10 分钟解说片时：
+
+1. `recap_ingest.py --project projects/<名>_recap --source <剧集文件夹>` — 批量转写+抽帧+meta（文件名排序=集数顺序）
+2. 按 5-6 集一批扮演"剧情分析师"：读各集 transcript_timed.txt 产出 beat timeline（时间戳/事件/冲突强度/高能时刻/金句）
+3. 扮演"全剧梳理师"：压成故事弧（人物表/三幕/十大爆点/金句/详略）
+4. 扮演"解说文案师"（读 `prompts/p5_recap_writer.txt`）→ 审核官过 rubric → ⏸用户定稿
+5. 扮演"素材规划师"：文案逐段 → `02_plan/plan.json`（ep/t_start/t_end/audio_mode/est_seconds，时间戳只取自 beat）
+6. 机检：`plan_check.py --project …`（退出码=门禁，不过修 plan 重跑）
+7. 渲染：`render_recap.py --project …` → `07_final/recap_v1.mp4`（MVP 保留原声+烧大字幕；TTS 版开发中）

@@ -81,6 +81,20 @@ def ts(sec):
     return "%02d:%02d:%02d" % (h, m, s)
 
 
+_MODEL_CACHE = {}
+
+
+def _get_model():
+    if "m" not in _MODEL_CACHE:
+        from faster_whisper import WhisperModel
+        wm = resolve_whisper_model()
+        try:
+            _MODEL_CACHE["m"] = WhisperModel(wm, device="cuda", compute_type="float16")
+        except Exception:
+            _MODEL_CACHE["m"] = WhisperModel(wm, device="cpu", compute_type="int8")
+    return _MODEL_CACHE["m"]
+
+
 def transcribe(media, outdir):
     wav = os.path.join(outdir, "_tmp_audio.wav")
     subprocess.run(
@@ -88,16 +102,11 @@ def transcribe(media, outdir):
         check=True,
     )
     import numpy as np
-    from faster_whisper import WhisperModel
 
     with wave.open(wav, "rb") as w:
         audio = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
-    # 本地模型优先 GPU, 失败降 CPU; 自动下载的模型首次会拉取约1.6GB
-    wm = resolve_whisper_model()
-    try:
-        model = WhisperModel(wm, device="cuda", compute_type="float16")
-    except Exception:
-        model = WhisperModel(wm, device="cpu", compute_type="int8")
+    # 模型全局缓存: 批量转写时只加载一次; 本地模型优先 GPU, 失败降 CPU
+    model = _get_model()
     segments, info = model.transcribe(audio, language="zh", vad_filter=True)
     plain, timed = [], []
     for seg in segments:

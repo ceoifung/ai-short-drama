@@ -38,11 +38,21 @@ description: AI短剧全自动制作工作流（对标改写打法）。用户�
 
 ## 调用方式
 
-保存的动态 workflow 名为 **`ai-short-drama`**，用 CreateWorkflow 的 `saved` 方式启动：
+两个保存的动态 workflow：
+
+1. **`ai-short-drama`**（制作流水线）——用 CreateWorkflow 的 `saved` 方式启动：
 
 ```
 CreateWorkflow: saved = { name: "ai-short-drama", args: { title, source, mode, ... } }
 ```
+
+2. **`ai-drama-recap`**（解说样片）——输入一个剧集文件夹（文件名排序=集数顺序），产出 5-10 分钟"一口气看完"式解说片（MVP 无声字幕版）：
+
+```
+CreateWorkflow: saved = { name: "ai-drama-recap", args: { title: "XX剧解说", source: <剧集文件夹>, target_minutes: 8 } }
+```
+
+流程：批量转写+抽帧 → 剧情分析师(每批5-6集, beat timeline) → 全剧梳理(十大爆点) → 解说文案+审核 → ⏸文案定稿 → 素材规划+机检(素材时长≥解说/原声单次≤5s且总占比<15%/总时长5-10分钟) → ffmpeg 切片拼接烧大字幕 → `07_final/recap_v1.mp4`。设计文档见 docs/解说方案.md。
 
 ## 参数
 
